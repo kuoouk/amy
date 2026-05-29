@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<!-- saved from url=(0047)file:///Users/guohaifeng/Downloads/index_5.html -->
+<html lang="zh-CN"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>名侦探</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+<link href="./amy_files/css2" rel="stylesheet">
+<style>
+:root {
+  --bg: #f4f1ea;
+  --fg: #1a1714;
+  --muted: #8a8479;
+  --muted-2: #c4bfb3;
+  --line: #e1ddd2;
+  --accent: #8b1a1a;
+  --serif: 'Cormorant Garamond', 'Noto Serif SC', serif;
+  --zh: 'Noto Serif SC', serif;
+
+  --slide-w: 50vw;          /* 每个 entry slide 占的宽度 — 中间居中,左右各露 25vw */
+  --side-pad: 25vw;         /* scroller 首尾的内边距,使第一/最后一张能居中 */
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--serif);
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "kern";
+  height: 100vh;
+  overflow: hidden;
+}
+
+body { font-weight: 400; font-size: 16px; line-height: 1.5; }
+a { color: inherit; text-decoration: none; }
+
+/* ===== Header ===== */
+header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: 36px 5vw;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  pointer-events: none;
+}
+header > * { pointer-events: auto; }
+
+.logo {
+  font-family: var(--zh);
+  font-size: 16px;
+  letter-spacing: 0.08em;
+}
+.logo .year {
+  font-family: var(--serif);
+  font-style: italic;
+  color: var(--muted);
+  margin-left: 14px;
+  font-size: 15px;
+}
+
+nav {
+  display: flex;
+  gap: 36px;
+  font-family: var(--serif);
+  font-size: 16px;
+  font-style: italic;
+}
+nav a {
+  color: var(--fg);
+  transition: opacity 0.4s;
+  cursor: pointer;
+}
+nav a:hover { opacity: 0.4; }
+
+/* ===== Horizontal scroller ===== */
+.scroller {
+  width: 100vw;
+  height: 100vh;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  display: flex;
+  -webkit-overflow-scrolling: touch;
+}
+.scroller::-webkit-scrollbar { display: none; }
+.scroller { scrollbar-width: none; -ms-overflow-style: none; }
+
+/* 关键:scroll-padding 让 snap 对齐到屏幕中心 */
+.scroller {
+  scroll-padding-left: var(--side-pad);
+  scroll-padding-right: var(--side-pad);
+}
+
+/* entry slide 宽度 = 50vw,scroll-snap-align: center → 自动居中对齐 */
+.slide {
+  flex: 0 0 var(--slide-w);
+  height: 100vh;
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+  position: relative;
+  cursor: pointer;
+  transition: opacity 0.5s ease;
+}
+
+/* cover / about 占满整屏 */
+.cover, .about {
+  flex: 0 0 100vw;
+  scroll-snap-align: start;
+  cursor: default;
+  display: flex;
+  align-items: center;
+}
+.cover { padding: 0 12vw; }
+.about { padding: 0 12vw; }
+
+/* ===== Cover ===== */
+.cover-inner { max-width: 760px; }
+.cover h1 {
+  font-family: var(--serif);
+  font-size: clamp(36px, 4.6vw, 60px);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+.cover h1 .zh { font-family: var(--zh); }
+.cover h1 em { font-style: italic; color: var(--muted); }
+.cover p {
+  margin-top: 44px;
+  font-size: clamp(17px, 1.5vw, 21px);
+  line-height: 1.7;
+  color: var(--muted);
+  max-width: 580px;
+}
+.cover .meta-line {
+  margin-top: 60px;
+  display: flex;
+  gap: 32px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--muted);
+}
+.cover .meta-line span:not(:last-child)::after {
+  content: '·';
+  margin-left: 32px;
+  color: var(--muted-2);
+}
+
+/* ===== Entry slide layout ===== */
+.entry {
+  height: 100vh;
+  padding: 10vh 2vw 13vh;     /* 上 10vh + 下 13vh,避开顶栏与底部按钮 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 非当前 slide → 淡出 + 缩小 */
+.slide:not(.active) .entry {
+  opacity: 0.32;
+  transform: scale(0.94);
+}
+.slide.active .entry {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.portrait {
+  width: 100%;
+  max-width: 300px;
+  height: 42vh;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+.portrait svg {
+  max-width: 100%;
+  max-height: 100%;
+  display: block;
+  filter: drop-shadow(0 18px 24px rgba(26, 23, 20, 0.06));
+  transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.name-block {
+  text-align: center;
+  max-width: 440px;
+  margin-bottom: 24px;
+}
+.name {
+  font-family: var(--zh);
+  font-size: clamp(22px, 2.2vw, 30px);
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+.name-en {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(14px, 1.2vw, 17px);
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+.quote {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(14px, 1.25vw, 17px);
+  line-height: 1.6;
+  position: relative;
+  padding: 0 14px;
+}
+.quote::before, .quote::after {
+  content: '';
+  display: inline-block;
+  width: 14px;
+  height: 1px;
+  background: var(--muted-2);
+  vertical-align: middle;
+  margin: 0 8px;
+}
+
+.fields {
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  width: 100%;
+  max-width: 320px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 20px;
+  font-family: var(--serif);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.field { display: flex; gap: 8px; }
+.field .k { font-style: italic; color: var(--muted); flex: 0 0 auto; }
+.field .v { font-family: var(--zh); color: var(--fg); }
+
+/* ===== About ===== */
+.about-inner { max-width: 680px; }
+.about p {
+  font-family: var(--serif);
+  font-size: clamp(18px, 1.6vw, 22px);
+  line-height: 1.7;
+}
+.about p + p { margin-top: 24px; }
+.about .signoff {
+  margin-top: 56px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--muted);
+}
+
+/* ===== 底部 UI ===== */
+/* 计数器:左下角 */
+.counter {
+  position: fixed;
+  bottom: 40px;
+  left: 5vw;
+  z-index: 90;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
+  pointer-events: none;
+}
+.counter .current {
+  color: var(--fg);
+  font-style: normal;
+}
+
+/* 翻页按钮:右下角成对 */
+.nav-group {
+  position: fixed;
+  bottom: 30px;
+  right: 5vw;
+  z-index: 95;
+  display: flex;
+  gap: 12px;
+}
+
+.nav-btn {
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--muted-2);
+  background: var(--bg);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: var(--fg);
+}
+.nav-btn:hover {
+  border-color: var(--fg);
+  background: var(--fg);
+  color: var(--bg);
+}
+.nav-btn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+.nav-btn:disabled:hover {
+  border-color: var(--muted-2);
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.nav-btn svg {
+  width: 13px;
+  height: 13px;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ===== Mobile ===== */
+@media (max-width: 768px) {
+  :root { --slide-w: 85vw; --side-pad: 7.5vw; }
+  header { padding: 24px 6vw; }
+  nav { gap: 20px; font-size: 14px; }
+  .cover, .about { padding: 0 8vw; }
+  .cover h1 { font-size: 28px; }
+  .cover p { font-size: 16px; margin-top: 28px; }
+  .cover .meta-line { font-size: 12px; gap: 14px; margin-top: 36px; }
+  .cover .meta-line span:not(:last-child)::after { margin-left: 14px; }
+  .entry { padding: 10vh 5vw 13vh; }
+  .portrait { height: 36vh; max-width: 220px; margin-bottom: 22px; }
+  .name { font-size: 20px; }
+  .name-en { font-size: 13px; margin-bottom: 12px; }
+  .quote { font-size: 13px; }
+  .fields { font-size: 11px; gap: 3px 12px; padding-top: 14px; max-width: 100%; }
+  .about p { font-size: 16px; }
+  .counter { bottom: 28px; left: 6vw; font-size: 12px; }
+  .nav-group { bottom: 20px; right: 6vw; gap: 10px; }
+  .nav-btn { width: 36px; height: 36px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">名侦探 <span class="year">2026</span></div>
+  <nav>
+    <a data-slide="0">Index</a>
+    <a data-slide="9">About</a>
+  </nav>
+</header>
+
+<div class="scroller" id="scroller">
+
+  <!-- ============ Cover ============ -->
+  <section class="cover active" data-idx="0">
+    <div class="cover-inner">
+      <h1>
+        一份关于 <em>the world's most beloved sleuths</em> 的<span class="zh">私人档案</span>。
+      </h1>
+      <p>
+        自爱伦·坡笔下的杜宾起, 推理小说的传统已逾一百八十年。这里收录的是历代名侦探——他们居于书页、银幕、卷宗之中, 以各自的方式回答同一个问题。
+      </p>
+      <div class="meta-line">
+        <span>Vol. I</span>
+        <span>Eight Detectives</span>
+        <span>2026</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Holmes ============ -->
+  <section class="slide" data-idx="1">
+    <div class="entry">
+      <div class="portrait">
+        <svg viewBox="0 0 400 540" xmlns="http://www.w3.org/2000/svg">
+          <path d="M 80 540 L 105 380 Q 200 365 295 380 L 320 540 Z" fill="#3a322a"></path>
+          <path d="M 130 480 Q 200 470 270 480 L 270 530 Q 200 522 130 530 Z" fill="#2a2520"></path>
+          <path d="M 175 395 L 200 415 L 225 395 L 218 440 L 200 428 L 182 440 Z" fill="#5a0f0f"></path>
+          <path d="M 175 360 Q 200 365 225 360 L 225 395 L 175 395 Z" fill="#c9a87d"></path>
+          <ellipse cx="200" cy="270" rx="80" ry="98" fill="#d4b896"></ellipse>
+          <path d="M 122 270 Q 132 332 168 368 L 168 188 Q 132 206 122 270 Z" fill="#a88a68" opacity="0.35"></path>
+          <path d="M 95 188 Q 95 100 200 92 Q 305 100 305 188 Z" fill="#4a4138"></path>
+          <ellipse cx="200" cy="188" rx="115" ry="32" fill="#3a322a"></ellipse>
+          <ellipse cx="200" cy="180" rx="78" ry="11" fill="#2a2520" opacity="0.5"></ellipse>
+          <rect x="86" y="183" width="228" height="4" fill="#2a2520"></rect>
+          <path d="M 150 110 L 250 110 L 244 140 L 156 140 Z" fill="#3a322a" opacity="0.55"></path>
+          <path d="M 155 232 L 187 228" stroke="#3a2818" stroke-width="3.5" fill="none" stroke-linecap="round"></path>
+          <path d="M 213 228 L 245 232" stroke="#3a2818" stroke-width="3.5" fill="none" stroke-linecap="round"></path>
+          <ellipse cx="167" cy="252" rx="5" ry="3.5" fill="#1a1410"></ellipse>
+          <ellipse cx="233" cy="252" rx="5" ry="3.5" fill="#1a1410"></ellipse>
+          <circle cx="168" cy="251" r="1" fill="#ffffff"></circle>
+          <circle cx="234" cy="251" r="1" fill="#ffffff"></circle>
+          <path d="M 200 262 L 192 302 L 208 302 Z" fill="#b89878" opacity="0.5"></path>
+          <path d="M 180 332 Q 200 338 220 332" stroke="#5a3a2a" stroke-width="2.5" fill="none" stroke-linecap="round"></path>
+          <ellipse cx="265" cy="345" rx="18" ry="12" fill="#3a2515"></ellipse>
+          <ellipse cx="265" cy="343" rx="12" ry="7" fill="#1a0f08"></ellipse>
+          <rect x="220" y="343" width="38" height="5" fill="#2a1810"></rect>
+          <path d="M 273 332 Q 295 290 280 250 Q 300 220 282 180" stroke="#a0998a" stroke-width="3" fill="none" opacity="0.35" stroke-linecap="round"></path>
+          <path d="M 282 320 Q 302 280 290 240" stroke="#a0998a" stroke-width="2.5" fill="none" opacity="0.25" stroke-linecap="round"></path>
+        </svg>
+      </div>
+      <div class="name-block">
+        <div class="name">夏洛克 · 福尔摩斯</div>
+        <div class="name-en">Sherlock Holmes</div>
+        <p class="quote">排除一切不可能, 剩下的, 无论多么不可信, 都是真相。</p>
+      </div>
+      <div class="fields">
+        <div class="field"><span class="k">From</span><span class="v">柯南·道尔</span></div>
+        <div class="field"><span class="k">Debut</span><span class="v">1887</span></div>
+        <div class="field"><span class="k">Place</span><span class="v">贝克街 221B</span></div>
+        <div class="field"><span class="k">Method</span><span class="v">演绎推理</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Dupin ============ -->
+  <section class="slide" data-idx="2">
+    <div class="entry">
+      <div class="portrait">
+        <svg viewBox="0 0 400 540" xmlns="http://www.w3.org/2000/svg">
+          <path d="M 70 540 L 100 395 Q 200 376 300 395 L 330 540 Z" fill="#1a1208"></path>
+          <path d="M 115 395 L 185 445 L 170 525 L 100 490 Z" fill="#2a1f15"></path>
+          <path d="M 285 395 L 215 445 L 230 525 L 300 490 Z" fill="#2a1f15"></path>
+          <path d="M 145 388 Q 200 376 255 388 L 250 425 Q 200 415 150 425 Z" fill="#e8e1d3"></path>
+          <path d="M 178 398 L 200 415 L 222 398 L 215 437 L 200 428 L 185 437 Z" fill="#0a0604"></path>
+          <path d="M 178 358 Q 200 365 222 358 L 222 390 L 178 390 Z" fill="#c9a87d"></path>
+          <ellipse cx="200" cy="268" rx="78" ry="98" fill="#d8c0a0"></ellipse>
+          <path d="M 124 268 Q 134 332 170 366 L 170 188 Q 134 204 124 268 Z" fill="#5a4030" opacity="0.45"></path>
+          <rect x="125" y="60" width="150" height="115" fill="#0a0604"></rect>
+          <ellipse cx="200" cy="60" rx="75" ry="11" fill="#1a1208"></ellipse>
+          <ellipse cx="200" cy="175" rx="108" ry="16" fill="#0a0604"></ellipse>
+          <rect x="135" y="167" width="130" height="5" fill="#5a3a2a"></rect>
+          <path d="M 154 228 L 187 224" stroke="#1a0f08" stroke-width="3.5" fill="none" stroke-linecap="round"></path>
+          <path d="M 213 224 L 246 228" stroke="#1a0f08" stroke-width="3.5" fill="none" stroke-linecap="round"></path>
+          <ellipse cx="167" cy="248" rx="5" ry="4" fill="#1a0f08"></ellipse>
+          <ellipse cx="233" cy="248" rx="5" ry="4" fill="#1a0f08"></ellipse>
+          <circle cx="168" cy="247" r="1" fill="#ffffff"></circle>
+          <circle cx="234" cy="247" r="1" fill="#ffffff"></circle>
+          <path d="M 200 256 L 192 298 L 208 298 Z" fill="#b89878" opacity="0.55"></path>
+          <path d="M 180 328 Q 200 333 220 328" stroke="#5a3a2a" stroke-width="2.5" fill="none" stroke-linecap="round"></path>
+        </svg>
+      </div>
+      <div class="name-block">
+        <div class="name">奥古斯特 · 杜宾</div>
+        <div class="name-en">C. Auguste Dupin</div>
+        <p class="quote">真正的分析者, 应在最不显眼之处, 寻得最显眼的真相。</p>
+      </div>
+      <div class="fields">
+        <div class="field"><span class="k">From</span><span class="v">爱伦·坡</span></div>
+        <div class="field"><span class="k">Debut</span><span class="v">1841</span></div>
+        <div class="field"><span class="k">Place</span><span class="v">巴黎</span></div>
+        <div class="field"><span class="k">Note</span><span class="v">推理小说之源</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Poirot ============ -->
+  <section class="slide" data-idx="3">
+    <div class="entry">
+      <div class="portrait">
+        <svg viewBox="0 0 400 540" xmlns="http://www.w3.org/2000/svg">
+          <path d="M 75 540 L 105 380 Q 200 360 295 380 L 325 540 Z" fill="#1a1208"></path>
+          <path d="M 155 380 L 180 405 L 200 450 L 220 405 L 245 380 L 245 540 L 155 540 Z" fill="#e8e1d3"></path>
+          <path d="M 178 402 L 200 418 L 222 402 L 215 436 L 200 428 L 185 436 Z" fill="#5a0f0f"></path>
+          <path d="M 122 376 L 180 422 L 168 530 L 110 502 Z" fill="#0f0a04"></path>
+          <path d="M 278 376 L 220 422 L 232 530 L 290 502 Z" fill="#0f0a04"></path>
+          <circle cx="135" cy="450" r="5" fill="#8b1a1a"></circle>
+          <path d="M 178 355 Q 200 362 222 355 L 222 388 L 178 388 Z" fill="#d8b898"></path>
+          <ellipse cx="200" cy="240" rx="92" ry="108" fill="#e8c8a8"></ellipse>
+          <ellipse cx="200" cy="172" rx="58" ry="34" fill="#f0d4b4" opacity="0.7"></ellipse>
+          <path d="M 110 240 Q 117 277 134 312 L 130 320 Q 109 282 105 248 Z" fill="#3a2515"></path>
+          <path d="M 290 240 Q 283 277 266 312 L 270 320 Q 291 282 295 248 Z" fill="#3a2515"></path>
+          <path d="M 142 230 Q 162 222 182 226" stroke="#2a1810" stroke-width="3.5" fill="none" stroke-linecap="round"></path>
+          <path d="M 218 226 Q 238 222 258 230" stroke="#2a1810" stroke-width="3.5" fill="none" stroke-linecap="round"></path>
+          <ellipse cx="165" cy="250" rx="5" ry="4" fill="#1a3520"></ellipse>
+          <ellipse cx="235" cy="250" rx="5" ry="4" fill="#1a3520"></ellipse>
+          <circle cx="166" cy="249" r="1" fill="#ffffff"></circle>
+          <circle cx="236" cy="249" r="1" fill="#ffffff"></circle>
+          <path d="M 200 260 Q 192 290 195 320 L 205 320 Q 208 290 200 260 Z" fill="#d8b898" opacity="0.6"></path>
+          <path d="M 153 338 Q 200 330 200 340 Q 200 330 247 338" stroke="#2a1810" stroke-width="5" fill="none" stroke-linecap="round"></path>
+          <path d="M 153 338 Q 124 332 110 318" stroke="#2a1810" stroke-width="5" fill="none" stroke-linecap="round"></path>
+          <path d="M 247 338 Q 276 332 290 318" stroke="#2a1810" stroke-width="5" fill="none" stroke-linecap="round"></path>
+          <path d="M 175 343 Q 200 348 225 343" stroke="#2a1810" stroke-width="4" fill="none" stroke-linecap="round"></path>
+          <path d="M 184 358 Q 200 361 216 358" stroke="#5a3a2a" stroke-width="2.5" fill="none" stroke-linecap="round"></path>
+        </svg>
+      </div>
+      <div class="name-block">
+        <div class="name">赫尔克里 · 波洛</div>
+        <div class="name-en">Hercule Poirot</div>
+        <p class="quote">秩序与方法, 我的朋友, 秩序与方法。</p>
+      </div>
+      <div class="fields">
+        <div class="field"><span class="k">From</span><span class="v">阿加莎·克里斯蒂</span></div>
+        <div class="field"><span class="k">Debut</span><span class="v">1920</span></div>
+        <div class="field"><span class="k">Origin</span><span class="v">比利时</span></div>
+        <div class="field"><span class="k">Method</span><span class="v">心理推理</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Conan ============ -->
+  <section class="slide" data-idx="4">
+    <div class="entry">
+      <div class="portrait">
+        <svg viewBox="0 0 400 540" xmlns="http://www.w3.org/2000/svg">
+          <path d="M 80 540 L 110 388 Q 200 368 290 388 L 320 540 Z" fill="#2a3a4a"></path>
+          <path d="M 150 388 L 180 412 L 200 440 L 220 412 L 250 388 L 250 540 L 150 540 Z" fill="#ffffff"></path>
+          <path d="M 168 410 L 200 425 L 232 410 L 222 458 L 200 444 L 178 458 Z" fill="#8b1a1a"></path>
+          <circle cx="200" cy="436" r="4" fill="#d4a040"></circle>
+          <path d="M 178 365 Q 200 372 222 365 L 222 395 L 178 395 Z" fill="#f0d8b8"></path>
+          <ellipse cx="200" cy="265" rx="84" ry="100" fill="#f0d8b8"></ellipse>
+          <path d="M 116 230 Q 110 130 200 110 Q 290 130 284 230 L 280 250 Q 240 195 200 200 Q 160 195 120 250 Z" fill="#1a1410"></path>
+          <path d="M 160 185 L 170 142 L 188 178 L 200 138 L 212 178 L 230 145 L 240 185" fill="#1a1410"></path>
+          <path d="M 130 248 Q 158 222 198 230 Q 215 222 270 248 L 268 280 Q 240 248 200 254 Q 160 248 132 280 Z" fill="#1a1410"></path>
+          <circle cx="167" cy="265" r="32" fill="none" stroke="#0f0d0b" stroke-width="5"></circle>
+          <circle cx="233" cy="265" r="32" fill="none" stroke="#0f0d0b" stroke-width="5"></circle>
+          <line x1="195" y1="265" x2="205" y2="265" stroke="#0f0d0b" stroke-width="5"></line>
+          <path d="M 148 250 L 168 240" stroke="#ffffff" stroke-width="4" opacity="0.75" stroke-linecap="round"></path>
+          <path d="M 214 250 L 234 240" stroke="#ffffff" stroke-width="4" opacity="0.75" stroke-linecap="round"></path>
+          <ellipse cx="167" cy="268" rx="5" ry="6.5" fill="#1a3550"></ellipse>
+          <ellipse cx="233" cy="268" rx="5" ry="6.5" fill="#1a3550"></ellipse>
+          <circle cx="168" cy="266" r="1.5" fill="#ffffff"></circle>
+          <circle cx="234" cy="266" r="1.5" fill="#ffffff"></circle>
+          <path d="M 200 282 L 194 308 L 206 308 Z" fill="#d4b896" opacity="0.5"></path>
+          <path d="M 180 335 Q 200 342 220 335" stroke="#5a3a2a" stroke-width="2.5" fill="none" stroke-linecap="round"></path>
+        </svg>
+      </div>
+      <div class="name-block">
+        <div class="name">江户川柯南</div>
+        <div class="name-en">Edogawa Conan</div>
+        <p class="quote">真相只有一个。</p>
+      </div>
+      <div class="fields">
+        <div class="field"><span class="k">From</span><span class="v">青山刚昌</span></div>
+        <div class="field"><span class="k">Debut</span><span class="v">1994</span></div>
+        <div class="field"><span class="k">Real Name</span><span class="v">工藤新一</span></div>
+        <div class="field"><span class="k">Note</span><span class="v">蝴蝶结变声器</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Bao Zheng ============ -->
+  <section class="slide" data-idx="5">
+    <div class="entry">
+      <div class="portrait">
+        <svg viewBox="0 0 400 540" xmlns="http://www.w3.org/2000/svg">
+          <path d="M 60 540 L 95 400 Q 200 375 305 400 L 340 540 Z" fill="#7a1818"></path>
+          <path d="M 145 400 L 200 440 L 255 400 L 248 470 L 200 452 L 152 470 Z" fill="#d4a040"></path>
+          <rect x="95" y="478" width="210" height="18" fill="#1a1208"></rect>
+          <circle cx="125" cy="487" r="5" fill="#d4a040"></circle>
+          <circle cx="160" cy="487" r="5" fill="#d4a040"></circle>
+          <circle cx="200" cy="487" r="6" fill="#d4a040"></circle>
+          <circle cx="240" cy="487" r="5" fill="#d4a040"></circle>
+          <circle cx="275" cy="487" r="5" fill="#d4a040"></circle>
+          <path d="M 178 380 Q 200 388 222 380 L 222 410 L 178 410 Z" fill="#3a2818"></path>
+          <ellipse cx="200" cy="262" rx="88" ry="108" fill="#3a2818"></ellipse>
+          <path d="M 112 262 Q 122 326 158 360 L 158 178 Q 122 196 112 262 Z" fill="#1a0f08" opacity="0.55"></path>
+          <path d="M 105 178 Q 105 100 200 92 Q 295 100 295 178 L 295 200 L 105 200 Z" fill="#0a0604"></path>
+          <ellipse cx="40" cy="188" rx="52" ry="9" fill="#0a0604"></ellipse>
+          <ellipse cx="360" cy="188" rx="52" ry="9" fill="#0a0604"></ellipse>
+          <ellipse cx="40" cy="188" rx="44" ry="4" fill="#1a1208"></ellipse>
+          <ellipse cx="360" cy="188" rx="44" ry="4" fill="#1a1208"></ellipse>
+          <rect x="192" y="115" width="16" height="14" fill="#d4a040"></rect>
+          <path d="M 184 168 Q 200 158 216 168 Q 212 184 200 184 Q 188 184 184 168 Z" fill="#e8e1d3"></path>
+          <path d="M 190 172 Q 200 168 210 172 Q 207 180 200 180 Q 193 180 190 172 Z" fill="#d4b896" opacity="0.4"></path>
+          <path d="M 144 222 Q 175 208 206 222" stroke="#0a0604" stroke-width="6" fill="none" stroke-linecap="round"></path>
+          <path d="M 194 222 Q 225 208 256 222" stroke="#0a0604" stroke-width="6" fill="none" stroke-linecap="round"></path>
+          <ellipse cx="167" cy="245" rx="6" ry="5" fill="#0a0604"></ellipse>
+          <ellipse cx="233" cy="245" rx="6" ry="5" fill="#0a0604"></ellipse>
+          <circle cx="168" cy="243" r="1.2" fill="#ffffff"></circle>
+          <circle cx="232" cy="243" r="1.2" fill="#ffffff"></circle>
+          <path d="M 200 260 L 192 298 L 208 298 Z" fill="#2a1810" opacity="0.6"></path>
+          <path d="M 130 320 Q 175 335 200 337 Q 225 335 270 320 L 270 388 Q 200 400 130 388 Z" fill="#0a0604"></path>
+          <path d="M 192 315 L 192 372 L 208 372 L 208 315 Z" fill="#0a0604"></path>
+          <path d="M 184 338 Q 200 340 216 338" stroke="#1a0f08" stroke-width="2.5" fill="none" stroke-linecap="round"></path>
+        </svg>
+      </div>
+      <div class="name-block">
+        <div class="name">包 拯</div>
+        <div class="name-en">Bao Zheng</div>
+        <p class="quote">铁面无私辨忠奸, 一片丹心照汗青。</p>
+      </div>
+      <div class="fields">
+        <div class="field"><span class="k">From</span><span class="v">三侠五义</span></div>
+        <div class="field"><span class="k">Era</span><span class="v">北宋 999—1062</span></div>
+        <div class="field"><span class="k">Title</span><span class="v">开封府尹</span></div>
+        <div class="field"><span class="k">Note</span><span class="v">月牙印 · 龙头铡</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Kindaichi ============ -->
+  <section class="slide" data-idx="6">
+    <div class="entry">
+      <div class="portrait">
+        <svg viewBox="0 0 400 540" xmlns="http://www.w3.org/2000/svg">
+          <path d="M 78 540 L 108 390 Q 200 370 292 390 L 322 540 Z" fill="#1a1820"></path>
+          <path d="M 152 390 L 185 415 L 215 415 L 248 390 L 248 540 L 152 540 Z" fill="#e8e1d3"></path>
+          <path d="M 185 415 L 215 415 L 212 540 L 188 540 Z" fill="#7a1818"></path>
+          <path d="M 188 435 L 212 435" stroke="#d4a040" stroke-width="1.5"></path>
+          <path d="M 188 465 L 212 465" stroke="#d4a040" stroke-width="1.5"></path>
+          <path d="M 188 495 L 212 495" stroke="#d4a040" stroke-width="1.5"></path>
+          <circle cx="125" cy="465" r="5" fill="#d4a040"></circle>
+          <path d="M 178 365 Q 200 372 222 365 L 222 395 L 178 395 Z" fill="#e8d4b8"></path>
+          <ellipse cx="200" cy="268" rx="82" ry="100" fill="#e8d4b8"></ellipse>
+          <path d="M 117 240 Q 105 130 165 115 Q 195 95 210 108 Q 230 95 270 120 Q 295 165 285 240 L 280 270 Q 250 215 215 220 Q 200 210 195 215 Q 175 215 145 220 Q 130 215 115 270 Z" fill="#0a0604"></path>
+          <path d="M 183 118 L 175 78 L 195 110 L 205 75 L 215 110 L 232 88 L 235 118" fill="#0a0604"></path>
+          <path d="M 132 245 Q 158 222 195 230 Q 215 222 268 245 L 268 275 Q 240 245 200 250 Q 160 245 134 275 Z" fill="#0a0604"></path>
+          <path d="M 152 268 Q 172 260 188 268" stroke="#0a0604" stroke-width="3.5" fill="none" stroke-linecap="round"></path>
+          <path d="M 212 268 Q 228 260 248 268" stroke="#0a0604" stroke-width="3.5" fill="none" stroke-linecap="round"></path>
+          <ellipse cx="170" cy="288" rx="5" ry="4" fill="#0a0604"></ellipse>
+          <ellipse cx="230" cy="288" rx="5" ry="4" fill="#0a0604"></ellipse>
+          <circle cx="171" cy="286" r="1.2" fill="#ffffff"></circle>
+          <circle cx="231" cy="286" r="1.2" fill="#ffffff"></circle>
+          <path d="M 200 302 L 193 332 L 207 332 Z" fill="#c8a888" opacity="0.55"></path>
+          <path d="M 180 355 Q 200 362 220 355" stroke="#5a3a2a" stroke-width="2.5" fill="none" stroke-linecap="round"></path>
+        </svg>
+      </div>
+      <div class="name-block">
+        <div class="name">金田一一</div>
+        <div class="name-en">Kindaichi Hajime</div>
+        <p class="quote">以爷爷之名起誓——谜团已全部解开。</p>
+      </div>
+      <div class="fields">
+        <div class="field"><span class="k">From</span><span class="v">天树征丸 · 佐藤文也</span></div>
+        <div class="field"><span class="k">Debut</span><span class="v">1992</span></div>
+        <div class="field"><span class="k">School</span><span class="v">私立不动高中</span></div>
+        <div class="field"><span class="k">Note</span><span class="v">耕助之孙</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Judge Dee ============ -->
+  <section class="slide" data-idx="7">
+    <div class="entry">
+      <div class="portrait">
+        <svg viewBox="0 0 400 540" xmlns="http://www.w3.org/2000/svg">
+          <path d="M 65 540 L 100 408 Q 200 380 300 408 L 335 540 Z" fill="#3a1a2a"></path>
+          <path d="M 142 408 L 200 460 L 258 408 L 250 488 L 200 462 L 150 488 Z" fill="#1a0f15"></path>
+          <rect x="100" y="495" width="200" height="15" fill="#1a0f08"></rect>
+          <circle cx="130" cy="502" r="4" fill="#a8c0d0"></circle>
+          <circle cx="165" cy="502" r="4" fill="#a8c0d0"></circle>
+          <circle cx="200" cy="502" r="4" fill="#a8c0d0"></circle>
+          <circle cx="235" cy="502" r="4" fill="#a8c0d0"></circle>
+          <circle cx="270" cy="502" r="4" fill="#a8c0d0"></circle>
+          <path d="M 178 358 Q 200 365 222 358 L 222 395 L 178 395 Z" fill="#d8b898"></path>
+          <ellipse cx="200" cy="260" rx="85" ry="105" fill="#d8b898"></ellipse>
+          <path d="M 115 260 Q 125 322 162 358 L 162 175 Q 125 192 115 260 Z" fill="#9a7858" opacity="0.4"></path>
+          <path d="M 122 180 L 122 122 Q 122 96 200 88 Q 278 96 278 122 L 278 180 Z" fill="#1a0f08"></path>
+          <path d="M 115 180 L 285 180 L 285 208 L 115 208 Z" fill="#0a0604"></path>
+          <rect x="193" y="98" width="14" height="32" fill="#d4a040"></rect>
+          <path d="M 122 193 L 60 180 L 60 200 L 122 208 Z" fill="#0a0604"></path>
+          <path d="M 278 193 L 340 180 L 340 200 L 278 208 Z" fill="#0a0604"></path>
+          <path d="M 155 230 Q 175 224 195 230" stroke="#a08868" stroke-width="1.2" fill="none"></path>
+          <path d="M 205 230 Q 225 224 245 230" stroke="#a08868" stroke-width="1.2" fill="none"></path>
+          <path d="M 142 238 Q 170 222 198 238" stroke="#1a0f08" stroke-width="5" fill="none" stroke-linecap="round"></path>
+          <path d="M 202 238 Q 230 222 258 238" stroke="#1a0f08" stroke-width="5" fill="none" stroke-linecap="round"></path>
+          <ellipse cx="167" cy="258" rx="5" ry="4" fill="#1a0f08"></ellipse>
+          <ellipse cx="233" cy="258" rx="5" ry="4" fill="#1a0f08"></ellipse>
+          <circle cx="168" cy="256" r="1" fill="#ffffff"></circle>
+          <circle cx="234" cy="256" r="1" fill="#ffffff"></circle>
+          <path d="M 200 270 L 192 308 L 208 308 Z" fill="#b89878" opacity="0.55"></path>
+          <path d="M 184 332 Q 200 335 216 332" stroke="#5a3a2a" stroke-width="2.5" fill="none" stroke-linecap="round"></path>
+          <path d="M 155 345 Q 145 408 130 478" stroke="#1a0f08" stroke-width="4" fill="none" stroke-linecap="round"></path>
+          <path d="M 184 352 Q 184 420 178 504" stroke="#1a0f08" stroke-width="3.5" fill="none" stroke-linecap="round"></path>
+          <path d="M 216 352 Q 216 420 222 504" stroke="#1a0f08" stroke-width="3.5" fill="none" stroke-linecap="round"></path>
+          <path d="M 245 345 Q 255 408 270 478" stroke="#1a0f08" stroke-width="4" fill="none" stroke-linecap="round"></path>
+          <path d="M 148 352 Q 200 368 252 352" stroke="#1a0f08" stroke-width="3" fill="none" stroke-linecap="round"></path>
+        </svg>
+      </div>
+      <div class="name-block">
+        <div class="name">狄仁杰</div>
+        <div class="name-en">Judge Dee</div>
+        <p class="quote">元芳, 你怎么看?</p>
+      </div>
+      <div class="fields">
+        <div class="field"><span class="k">From</span><span class="v">高罗佩 · 狄公案</span></div>
+        <div class="field"><span class="k">Era</span><span class="v">唐 · 630—700</span></div>
+        <div class="field"><span class="k">Title</span><span class="v">宰相 · 大理寺丞</span></div>
+        <div class="field"><span class="k">Note</span><span class="v">东方推理原型</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ Furuhata ============ -->
+  <section class="slide" data-idx="8">
+    <div class="entry">
+      <div class="portrait">
+        <svg viewBox="0 0 400 540" xmlns="http://www.w3.org/2000/svg">
+          <path d="M 80 540 L 110 390 Q 200 370 290 390 L 320 540 Z" fill="#0a0604"></path>
+          <path d="M 152 390 L 180 415 L 200 540 L 220 415 L 248 390 L 248 540 L 152 540 Z" fill="#e8e1d3"></path>
+          <path d="M 188 415 L 212 415 L 212 540 L 188 540 Z" fill="#0a0604"></path>
+          <path d="M 120 388 L 178 425 L 165 525 L 110 498 Z" fill="#1a1208"></path>
+          <path d="M 280 388 L 222 425 L 235 525 L 290 498 Z" fill="#1a1208"></path>
+          <path d="M 270 460 L 295 460 L 295 480 L 270 480 Z" fill="#e8e1d3"></path>
+          <path d="M 178 358 Q 200 365 222 358 L 222 390 L 178 390 Z" fill="#e0c8a8"></path>
+          <ellipse cx="200" cy="265" rx="80" ry="112" fill="#e0c8a8"></ellipse>
+          <path d="M 122 220 Q 116 115 200 100 Q 284 115 278 220 L 273 250 Q 240 200 200 205 Q 160 200 127 250 Z" fill="#0a0604"></path>
+          <path d="M 137 245 Q 162 222 195 230 Q 220 222 263 245 L 263 275 Q 238 248 200 252 Q 162 248 137 275 Z" fill="#0a0604"></path>
+          <path d="M 152 268 Q 172 258 188 268" stroke="#0a0604" stroke-width="4" fill="none" stroke-linecap="round"></path>
+          <path d="M 212 268 Q 228 258 248 268" stroke="#0a0604" stroke-width="4" fill="none" stroke-linecap="round"></path>
+          <ellipse cx="170" cy="290" rx="5" ry="4" fill="#0a0604"></ellipse>
+          <ellipse cx="230" cy="290" rx="5" ry="4" fill="#0a0604"></ellipse>
+          <circle cx="171" cy="288" r="1.2" fill="#ffffff"></circle>
+          <circle cx="231" cy="288" r="1.2" fill="#ffffff"></circle>
+          <path d="M 200 305 L 192 340 L 208 340 Z" fill="#c8a888" opacity="0.55"></path>
+          <path d="M 180 365 Q 200 370 222 360" stroke="#5a3a2a" stroke-width="2.5" fill="none" stroke-linecap="round"></path>
+        </svg>
+      </div>
+      <div class="name-block">
+        <div class="name">古畑任三郎</div>
+        <div class="name-en">Furuhata Ninzaburō</div>
+        <p class="quote">啊, 对了……还有一件事, 我想请教您。</p>
+      </div>
+      <div class="fields">
+        <div class="field"><span class="k">From</span><span class="v">三谷幸喜</span></div>
+        <div class="field"><span class="k">Debut</span><span class="v">1994</span></div>
+        <div class="field"><span class="k">Title</span><span class="v">警视厅刑事</span></div>
+        <div class="field"><span class="k">Note</span><span class="v">第四面墙独白</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ About ============ -->
+  <section class="about" data-idx="9">
+    <div class="about-inner">
+      <p>这个网站是一份私人收藏。我把那些一直陪伴我的名侦探放在这里——他们来自不同的时代和国度, 有人住在贝克街, 有人住在巴黎的旧公寓, 有人坐于开封府堂上。</p>
+      <p>每位侦探都对应着一种思考方式: 演绎、归纳、心理直觉、秩序与方法。读他们, 是读不同的人, 在同一种混乱面前如何保持清醒。</p>
+      <div class="signoff">— 编撰于灯下, 2026</div>
+    </div>
+  </section>
+
+</div>
+
+<!-- 底部 UI -->
+<div class="counter"><span class="current" id="cur">00</span> &nbsp;/&nbsp; 08</div>
+
+<div class="nav-group">
+  <button class="nav-btn" id="prevBtn" aria-label="Previous" disabled="">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+  </button>
+  <button class="nav-btn" id="nextBtn" aria-label="Next">
+    <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"></polyline></svg>
+  </button>
+</div>
+
+<script>
+  const scroller = document.getElementById('scroller');
+  const slides = document.querySelectorAll('.cover, .slide, .about');
+  const curEl = document.getElementById('cur');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+
+  // 每个 slide 在 scroller 中的中心点位置
+  function slideCenters() {
+    const centers = [];
+    let acc = 0;
+    slides.forEach(s => {
+      centers.push(acc + s.offsetWidth / 2);
+      acc += s.offsetWidth;
+    });
+    return centers;
+  }
+
+  // 找出哪个 slide 中心最接近视口中心
+  function currentIndex() {
+    const centers = slideCenters();
+    const viewportCenter = scroller.scrollLeft + window.innerWidth / 2;
+    let best = 0, bestDist = Infinity;
+    centers.forEach((c, i) => {
+      const d = Math.abs(c - viewportCenter);
+      if (d < bestDist) { bestDist = d; best = i; }
+    });
+    return best;
+  }
+
+  function scrollToIndex(i) {
+    i = Math.max(0, Math.min(slides.length - 1, i));
+    const centers = slideCenters();
+    const target = centers[i] - window.innerWidth / 2;
+    scroller.scrollTo({ left: target, behavior: 'smooth' });
+  }
+
+  // 鼠标滚轮 → 横向滚动
+  scroller.addEventListener('wheel', (e) => {
+    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+      e.preventDefault();
+      scroller.scrollLeft += e.deltaY;
+    }
+  }, { passive: false });
+
+  // 键盘左右
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight') scrollToIndex(currentIndex() + 1);
+    if (e.key === 'ArrowLeft') scrollToIndex(currentIndex() - 1);
+  });
+
+  // 点击 slide:
+  // - 点击当前激活的 → 进入下一张
+  // - 点击左侧未激活的 → 上一张
+  // - 点击右侧未激活的 → 下一张
+  slides.forEach((s, i) => {
+    s.addEventListener('click', () => {
+      const cur = currentIndex();
+      if (i === cur) {
+        scrollToIndex(cur + 1);
+      } else if (i < cur) {
+        scrollToIndex(cur - 1);
+      } else {
+        scrollToIndex(cur + 1);
+      }
+    });
+  });
+
+  // 按钮
+  prevBtn.addEventListener('click', () => scrollToIndex(currentIndex() - 1));
+  nextBtn.addEventListener('click', () => scrollToIndex(currentIndex() + 1));
+
+  // 更新状态
+  function update() {
+    const cur = currentIndex();
+    slides.forEach((s, i) => s.classList.toggle('active', i === cur));
+    // 计数器只算 8 位侦探(slide index 1-8)
+    const detIdx = Math.max(0, Math.min(8, cur));
+    curEl.textContent = String(detIdx).padStart(2, '0');
+    // 按钮禁用
+    prevBtn.disabled = cur === 0;
+    nextBtn.disabled = cur === slides.length - 1;
+  }
+  scroller.addEventListener('scroll', update);
+  window.addEventListener('resize', update);
+
+  // 顶栏 nav
+  document.querySelectorAll('nav a[data-slide]').forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      scrollToIndex(parseInt(a.dataset.slide));
+    });
+  });
+
+  // 初始化
+  setTimeout(update, 50);
+</script>
+
+
+
+</body></html>
