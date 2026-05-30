@@ -57,7 +57,6 @@ header > * { pointer-events: auto; }
 }
 .logo .year {
   font-family: var(--serif);
-  font-style: italic;
   color: var(--muted);
   margin-left: 14px;
   font-size: 15px;
@@ -68,7 +67,6 @@ nav {
   gap: 36px;
   font-family: var(--serif);
   font-size: 16px;
-  font-style: italic;
 }
 nav a {
   color: var(--fg);
@@ -108,16 +106,38 @@ nav a:hover { opacity: 0.4; }
   transition: opacity 0.5s ease;
 }
 
-/* cover / about 占满整屏 */
-.cover, .about {
+/* cover 占满整屏(标题左对齐) */
+.cover {
   flex: 0 0 100vw;
   scroll-snap-align: start;
   cursor: default;
   display: flex;
   align-items: center;
+  padding: 0 12vw;
 }
-.cover { padding: 0 12vw; }
-.about { padding: 0 12vw; }
+
+/* about 和 entry 一样,居中卡片,左右露预览 */
+.about {
+  flex: 0 0 var(--slide-w);
+  height: 100vh;
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 2vw;
+  transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.about:not(.active) {
+  opacity: 0.32;
+  transform: scale(0.94);
+}
+.about.active {
+  opacity: 1;
+  transform: scale(1);
+}
 
 /* ===== Cover ===== */
 .cover-inner { max-width: 760px; }
@@ -243,18 +263,21 @@ nav a:hover { opacity: 0.4; }
 .field .v { font-family: var(--zh); color: var(--fg); }
 
 /* ===== About ===== */
-.about-inner { max-width: 680px; }
+.about-inner {
+  max-width: 440px;
+  text-align: center;
+}
 .about p {
   font-family: var(--serif);
-  font-size: clamp(18px, 1.6vw, 22px);
-  line-height: 1.7;
+  font-size: clamp(15px, 1.35vw, 18px);
+  line-height: 1.75;
 }
-.about p + p { margin-top: 24px; }
+.about p + p { margin-top: 20px; }
 .about .signoff {
-  margin-top: 56px;
+  margin-top: 44px;
   font-family: var(--serif);
   font-style: italic;
-  font-size: 15px;
+  font-size: 14px;
   color: var(--muted);
 }
 
@@ -627,7 +650,7 @@ nav a:hover { opacity: 0.4; }
         </svg>
       </div>
       <div class="name-block">
-        <div class="name">金田一一</div>
+        <div class="name">金田一</div>
         <div class="name-en">Kindaichi Hajime</div>
         <p class="quote">以爷爷之名起誓——谜团已全部解开。</p>
       </div>
