@@ -354,7 +354,7 @@ nav a:hover { opacity: 0.4; }
   :root { --slide-w: 85vw; --side-pad: 7.5vw; }
   header { padding: 24px 6vw; }
   nav { gap: 20px; font-size: 14px; }
-  .cover, .about { padding: 0 8vw; }
+  .cover { padding: 0 8vw; }
   .cover h1 { font-size: 28px; }
   .cover p { font-size: 16px; margin-top: 28px; }
   .cover .meta-line { font-size: 12px; gap: 14px; margin-top: 36px; }
@@ -365,7 +365,25 @@ nav a:hover { opacity: 0.4; }
   .name-en { font-size: 13px; margin-bottom: 12px; }
   .quote { font-size: 13px; }
   .fields { font-size: 11px; gap: 3px 12px; padding-top: 14px; max-width: 100%; }
-  .about p { font-size: 16px; }
+
+  /* 手机端 about:全屏居中,不再做卡片预览效果 */
+  .about {
+    flex: 0 0 100vw;
+    padding: 0 10vw;
+    scroll-snap-align: center;
+  }
+  .about:not(.active), .about.active {
+    opacity: 1;
+    transform: scale(1);
+  }
+  .about-inner {
+    max-width: 100%;
+    text-align: center;
+  }
+  .about p { font-size: 15px; line-height: 1.8; }
+  .about p + p { margin-top: 18px; }
+  .about .signoff { font-size: 13px; margin-top: 36px; }
+
   .counter { bottom: 28px; left: 6vw; font-size: 12px; }
   .nav-group { bottom: 20px; right: 6vw; gap: 10px; }
   .nav-btn { width: 36px; height: 36px; }
